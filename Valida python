@@ -1,0 +1,30 @@
+import yaml
+
+def validar_labels_prometheus(caminho_arquivo, regra_prometheus):
+    with open(caminho_arquivo, 'r') as arquivo:
+        conteudo = arquivo.read()
+
+    # Carrega o arquivo YAML
+    dados_yaml = yaml.safe_load(conteudo)
+
+    # Obtém as labels mencionadas na regra Prometheus
+    labels_prometheus = regra_prometheus.get('labels', [])
+
+    # Verifica se todas as labels estão presentes no arquivo YAML
+    for label in labels_prometheus:
+        if label not in dados_yaml.get('labels', {}):
+            return False
+
+    return True
+
+# Exemplo de uso
+caminho_arquivo = 'arquivo.yml'
+regra_prometheus = {
+    'labels': ['label1', 'label2', 'label3']
+}
+
+valido = validar_labels_prometheus(caminho_arquivo, regra_prometheus)
+if valido:
+    print("Todas as labels estão presentes no arquivo YAML.")
+else:
+    print("Algumas labels estão faltando no arquivo YAML.")
