@@ -1,17 +1,17 @@
 import os
 
-def obter_caminhos_arquivos(diretorio):
-    caminhos_arquivos = []
+def get_file_paths(directory):
+    file_paths = []
     
-    for root, dirs, files in os.walk(diretorio):
+    for root, dirs, files in os.walk(directory):
         for file in files:
-            caminho_arquivo = os.path.join(root, file)
-            caminhos_arquivos.append(caminho_arquivo)
+            file_path = os.path.join(root, file)
+            file_paths.append(file_path)
     
-    return caminhos_arquivos
+    return file_paths
 
-diretorio = '/caminho/do/seu/diretorio'
-caminhos = obter_caminhos_arquivos(diretorio)
+directory = '/path/to/your/directory'
+paths = get_file_paths(directory)
 
-for caminho in caminhos:
-    print(caminho)
+for path in paths:
+    print(path)
