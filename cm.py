@@ -3,6 +3,13 @@ import yaml
 import git
 from kubernetes import client, config
 
+def yaml_to_json(yaml_content):
+    try:
+        return yaml.load(yaml_content, Loader=yaml.FullLoader)
+    except Exception as e:
+        print(f"Erro ao converter YAML para JSON: {e}")
+        return None
+        
 def is_valid_yaml(yaml_content):
     try:
         # Carregar o YAML e verificar se ele não está vazio
