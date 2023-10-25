@@ -25,40 +25,38 @@ def append_data_to_existing_configmap(namespace, configmap_name, data_to_append)
 
         api.replace_namespaced_config_map(configmap_name, namespace, existing_configmap)
         print(f"Dados acrescentados ao ConfigMap '{configmap_name}' no namespace '{namespace}'")
-
-        # Após atualizar o ConfigMap, atualize o Deployment para reiniciar o pod
-        update_deployment(namespace, "thanos-ruler")
-
     except client.rest.ApiException as e:
         print(f"Erro ao acrescentar dados ao ConfigMap: {e}")
 
-def update_deployment(namespace, deployment_name):
-    extensions_v1 = client.ExtensionsV1Api()
+def append_data_to_configmaps_in_subdirectories(root_directory, repo_name):
+    for root, dirs, files in os.walk(root_directory):
+        if not files:
+            continue  # Ignora pastas vazias
+        for filename in files:
+            if filename.endswith(".yaml") or filename.endswith(".yml"):
+                file_path = os.path.join(root, filename)
+                with open(file_path, "r") as file:
+                    yaml_content = file.read()
+                    if is_valid_yaml(yaml_content):
+                        json_data = yaml_to_json(yaml_content)
+                        if json_data:
+                            configmap_name = os.path.basename(root)
+                            namespace = f"thanos-{configmap_name}-pro"
+                            append_data_to_existing_configmap(namespace, "thanos-rule", json_data)
 
-    try:
-        # Obtenha o recurso Deployment atual
-        current_deployment = extensions_v1.read_namespaced_deployment(deployment_name, namespace)
-
-        # Altere a versão do aplicativo (imagem, rótulo, etc.) para forçar a recriação do pod
-        current_deployment.spec.template.metadata.annotations = {
-            "kubectl.kubernetes.io/restartedAt": str(int(time.time() * 10**9))
-        }
-
-        # Atualize o Deployment
-        extensions_v1.replace_namespaced_deployment(deployment_name, namespace, current_deployment)
-
-        print(f"Deployment '{deployment_name}' no namespace '{namespace}' atualizado para reiniciar o pod.")
-    except client.rest.ApiException as e:
-        print(f"Erro ao atualizar o Deployment: {e}")
-
-# Resto do script...
+def clone_or_pull_git_repo(repo_url, target_directory):
+    if os.path.exists(target_directory):
+        repo = git.Repo(target_directory)
+        repo.remotes.origin.pull()
+    else:
+        git.Repo.clone_from(repo_url, target_directory)
 
 if __name__ == "__main__":
-    # Resto do script...
+    repo_url = "https://github.com/seu-usuario/seu-repositorio.git"  # Substitua pelo URL do seu repositório Git
+    target_directory = "nome-do-seu-repo"  # Substitua pelo nome do diretório alvo
 
-    try:
-        clone_or_pull_git_repo(repo_url, target_directory)
-        root_directory = os.path.abspath(target_directory)
-        append_data_to_configmaps_in_subdirectories(root_directory, target_directory)
-    except Exception as e:
-        logging.exception("Erro durante a execução do script:")
+    clone_or_pull_git_repo(repo_url, target_directory)
+
+    root_directory = os.path.abspath(target_directory)
+
+    append_data_to_configmaps_in_subdirectories(root_directory, target_directory)
